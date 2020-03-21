@@ -735,6 +735,16 @@ void ControlCHandler(int signal)
   should_exit = 1;
 }
 
+static void MaybeExit()
+{
+  if (ardrone_tool_exit())
+  {
+    C_RESULT res;
+    res = ardrone_tool_shutdown();
+    exit(SUCCEED(res) ? 0 : -1);
+  }
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 // custom_main
 ////////////////////////////////////////////////////////////////////////////////
@@ -800,6 +810,7 @@ int main(int argc, char** argv)
 
   while (-1 == getDroneVersion(".", wifi_ardrone_ip, &ardroneVersion))
   {
+    MaybeExit();
     printf("Getting AR.Drone version ...\n");
     vp_os_delay(250);
   }
@@ -836,8 +847,9 @@ int main(int argc, char** argv)
                             MAX_FLIGHT_STORING_SIZE,
                             NULL);
 
-    while (SUCCEED(res) && ardrone_tool_exit() == FALSE)
+    while (SUCCEED(res))
     {
+      MaybeExit();
       res = ardrone_tool_update();
     }
     res = ardrone_tool_shutdown();
